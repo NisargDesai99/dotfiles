@@ -1,0 +1,10 @@
+#/bin/bash
+
+echo $DOTFILES/mux
+
+# link tmux sessionizer
+sudo ln -s $DOTFILES/mux /usr/local/bin/mux
+
+sudo ln -s $DOTFILES/.tmux.conf ~/.tmux.conf
+
+
