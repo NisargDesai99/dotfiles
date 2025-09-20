@@ -1,6 +1,38 @@
-#/bin/bash
+#!/usr/bin/env bash
 
-sudo ln -s $DOTFILES/mux /usr/local/bin/mux
-sudo ln -s $DOTFILES/.tmux.conf ~/.tmux.conf
+set -euo pipefail
+
+: "$DOTFILES:?DOTFILES not set}"
+
+# Make sure /usr/local/bin exists
+sudo mkdir -p /usr/local/bin
+
+while IFS= read -r -d '' file; do
+  if [[ -f "$file" && -x "$file"  ]]; then
+    name="$(basename "$file")"
+    destination="/usr/local/bin/$name"
+    sudo ln -sfn "$file" "$destination"
+    echo "linked: $file -> $destination"
+  fi
+done < <(find "$DOTFILES" -maxdepth 1 -type f -print0)
+
+# Link tmux config to ~/.tmux.conf
+tmux_src=""
+if [[ -f "$DOTFILES/.tmux.conf" ]]; then
+  tmux_src="$DOTFILES/.tmux.conf"
+elif [[ -f "$DOTFILES/tmux.conf" ]]; then
+  tmux_src="$DOTFILES/tmux.conf"
+else
+  # fallback: first *.tmux.conf in DOTFILES root
+  tmux_src="$(find "$DOTFILES%/" -maxdepth 1 -type f -name '*.tmux.conf' | head -n 1 || true)"
+fi
+
+if [[ -n "${tmux_src:-}" ]]; then
+  ln -sfn "$tmux_src" "$HOME/.tmux.conf"
+  echo "linked: $tmux_src -> $HOME/.tmux.conf"
+else
+  echo "no tmux config found in $DOTFILES_DIR" >&2
+fi
+
 
 
